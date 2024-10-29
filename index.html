@@ -1,0 +1,260 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Airport Search Filter</title>
+
+  <style>
+    body {
+      background-color: #B48F57;
+      font-family: 'Poppins', sans-serif;
+      margin: 0;
+      padding: 0;
+      color: #fff;
+    }
+  
+    .filter-container {
+      width: 80%;
+      margin: 50px auto;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+  
+    select, input[type="text"] {
+      width: 100%;
+      padding: 15px;
+      border: 2px solid #D2B48C;
+      border-radius: 5px;
+      background-color: #013636;
+      color: #fff;
+      font-size: 16px;
+      outline: none;
+    }
+  
+    select:focus, input[type="text"]:focus {
+      border-color: #F4B400;
+      box-shadow: 0 0 8px rgba(244, 180, 0, 0.8);
+    }
+  
+    select[disabled] {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  
+    input::placeholder {
+      color: #8FBFBF;
+      font-style: italic;
+    }
+  
+    .dropdown-row {
+      display: flex;
+      gap: 10px;
+      justify-content: space-between;
+    }
+  
+    button {
+      padding: 15px;
+      border: none;
+      border-radius: 5px;
+      background-color: #F4B400;
+      color: #002F2F;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 18px;
+      width: 100%;
+    }
+  
+    button:hover {
+      background-color: #D39E00;
+    }
+  
+    .results-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+  
+    .results-table th, .results-table td {
+      border: 1px solid #D2B48C;
+      padding: 12px;
+      text-align: left;
+    }
+  
+    .results-table th {
+      background-color: #014D4D;
+      color: #fff;
+    }
+  
+    .results-table tr:nth-child(even) {
+      background-color: #013636;
+    }
+  
+    @media (max-width: 768px) {
+      .dropdown-row {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="filter-container">
+    <input type="text" id="search" placeholder="What's your airport? (OACI, IATA, City...)">
+    <div class="dropdown-row">
+      <select id="continent" onchange="updateCountries()">
+        <option value="">Select Continent</option>
+        <option value="Europe">Europe</option>
+        <option value="Asia">Asia</option>
+      </select>
+
+      <select id="country" disabled onchange="updateCities()">
+        <option value="">Select Country</option>
+      </select>
+
+      <select id="city" disabled onchange="updateAirports()">
+        <option value="">Select City</option>
+      </select>
+
+      <select id="airport" disabled>
+        <option value="">Select Airport</option>
+      </select>
+    </div>
+
+    <button type="button" onclick="searchAirport()">Search</button>
+
+    <table class="results-table">
+      <thead>
+        <tr>
+          <th>Airport Name</th>
+       
+        </tr>
+      </thead>
+      <tbody id="results">
+        <!-- Search results will go here -->
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    const data = {
+      "Europe": {
+        "Austria": {
+          "Vienna": ["Vienna International Airport (VIE)"],
+          "Graz": ["Graz Airport (GRZ)"],
+          "Salzburg": ["Salzburg Airport (SZG)"]
+        },
+        "Hungary": {
+          "Budapest": ["Budapest Liszt Ferenc International Airport (BUD)"]
+        },
+        "Turkey": {
+          "Istanbul": ["Istanbul Atatürk Airport (ISL)"]
+        }
+      },
+      "Asia": {
+        "Japan": {
+          "Tokyo": ["Tokyo Haneda Airport (HND)"]
+        },
+        "China": {
+          "Beijing": ["Beijing Capital International Airport (PEK)"]
+        }
+      }
+    };
+
+    function updateCountries() {
+      const continent = document.getElementById('continent').value;
+      const countrySelect = document.getElementById('country');
+      const citySelect = document.getElementById('city');
+      const airportSelect = document.getElementById('airport');
+
+      countrySelect.innerHTML = '<option value="">Select Country</option>';
+      citySelect.innerHTML = '<option value="">Select City</option>';
+      airportSelect.innerHTML = '<option value="">Select Airport</option>';
+      citySelect.disabled = true;
+      airportSelect.disabled = true;
+
+      if (continent) {
+        countrySelect.disabled = false;
+        const countries = Object.keys(data[continent]);
+
+        countries.forEach(country => {
+          const option = document.createElement('option');
+          option.value = country;
+          option.textContent = country;
+          countrySelect.appendChild(option);
+        });
+      } else {
+        countrySelect.disabled = true;
+      }
+    }
+
+    function updateCities() {
+      const continent = document.getElementById('continent').value;
+      const country = document.getElementById('country').value;
+      const citySelect = document.getElementById('city');
+      const airportSelect = document.getElementById('airport');
+
+      citySelect.innerHTML = '<option value="">Select City</option>';
+      airportSelect.innerHTML = '<option value="">Select Airport</option>';
+      airportSelect.disabled = true;
+
+      if (country) {
+        citySelect.disabled = false;
+        const cities = Object.keys(data[continent][country]);
+
+        cities.forEach(city => {
+          const option = document.createElement('option');
+          option.value = city;
+          option.textContent = city;
+          citySelect.appendChild(option);
+        });
+      } else {
+        citySelect.disabled = true;
+      }
+    }
+
+    function updateAirports() {
+      const continent = document.getElementById('continent').value;
+      const country = document.getElementById('country').value;
+      const city = document.getElementById('city').value;
+      const airportSelect = document.getElementById('airport');
+
+      airportSelect.innerHTML = '<option value="">Select Airport</option>';
+
+      if (city) {
+        airportSelect.disabled = false;
+        const airports = data[continent][country][city];
+
+        airports.forEach(airport => {
+          const option = document.createElement('option');
+          option.value = airport;
+          option.textContent = airport;
+          airportSelect.appendChild(option);
+        });
+      } else {
+        airportSelect.disabled = true;
+      }
+    }
+
+    function searchAirport() {
+      const searchQuery = document.getElementById('search').value.toLowerCase();
+      const airport = document.getElementById('airport').value;
+
+      const results = document.getElementById('results');
+      results.innerHTML = '';
+
+      if (airport.toLowerCase().includes(searchQuery)) {
+        const row = document.createElement('tr');
+        row.innerHTML = `<td>${airport}</td><td>${airport.split('(')[1].replace(')', '')}</td>`;
+        results.appendChild(row);
+
+        window.location.href = 'https://vip-jet-catering.com/mynn-nas-nassau/';
+      } else {
+        alert('Airport not found');
+      }
+    }
+  </script>
+</body>
+</html>
